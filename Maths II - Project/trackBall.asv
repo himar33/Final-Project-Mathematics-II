@@ -22,7 +22,7 @@ function varargout = trackBall(varargin)
 
 % Edit the above text to modify the response to help trackBall
 
-% Last Modified by GUIDE v2.5 14-Jan-2021 18:29:16
+% Last Modified by GUIDE v2.5 14-Jan-2021 18:36:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -515,14 +515,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in anglesButton.
-function anglesButton_Callback(hObject, eventdata, handles)
-% hObject    handle to anglesButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
 function q_a_Callback(hObject, eventdata, handles)
 % hObject    handle to q_a (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -619,9 +611,31 @@ function quatButton_Callback(hObject, eventdata, handles)
 % hObject    handle to quatButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.q_b = get(handles.q_a,'String');
-q_c = get(handles.q_c,'Value');
-q_d = get(handles.q_d,'Value');
+get(handles.q_a,'String');
+get(handles.q_b,'String');
+get(handles.q_c,'String');
+get(handles.q_d,'String');
+
+
+% --- Executes on button press in eulersButton.
+function eulersButton_Callback(hObject, eventdata, handles)
+% hObject    handle to eulersButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+get(handles.axisX,'String');
+get(handles.axisY,'String');
+get(handles.axisZ,'String');
+get(handles.axAngle,'String');
+
+
+% --- Executes on button press in anglesButton.
+function anglesButton_Callback(hObject, eventdata, handles)
+% hObject    handle to anglesButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+get(handles.alpha,'String');
+get(handles.be,'String');
+get(handles.vecZ,'String');
 
 
 % --- Executes on button press in rotationButton.
@@ -631,8 +645,9 @@ function rotationButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in eulersButton.
-function eulersButton_Callback(hObject, eventdata, handles)
-% hObject    handle to eulersButton (see GCBO)
+% --- Executes on mouse press over figure background, over a disabled or
+% --- inactive control, or over an axes background.
+function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)

@@ -444,6 +444,20 @@ function resetButton_Callback(hObject, eventdata, handles)
 % hObject    handle to resetButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.q_a.String = 0;
+handles.q_b.String = 0;
+handles.q_c.String = 0;
+handles.q_d.String = 0;
+handles.axisX.String = 0;
+handles.axisY.String = 0;
+handles.axisZ.String = 0;
+handles.axAngle.String = 0;
+handles.vecX.String = 0;
+handles.vecY.String = 0;
+handles.vecZ.String = 0;
+handles.alpha.String = 0;
+handles.beta.String = 0;
+handles.gamma.String = 0;
 
 
 
@@ -513,14 +527,6 @@ function gamma_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on button press in anglesButton.
-function anglesButton_Callback(hObject, eventdata, handles)
-% hObject    handle to anglesButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 
 
 function q_a_Callback(hObject, eventdata, handles)
@@ -625,18 +631,35 @@ get(handles.q_c,'String');
 get(handles.q_d,'String');
 
 
-% --- Executes on button press in rotationButton.
-function rotationButton_Callback(hObject, eventdata, handles)
-% hObject    handle to rotationButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
 % --- Executes on button press in eulersButton.
 function eulersButton_Callback(hObject, eventdata, handles)
 % hObject    handle to eulersButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+get(handles.axisX,'String');
+get(handles.axisY,'String');
+get(handles.axisZ,'String');
+get(handles.axAngle,'String');
+
+
+% --- Executes on button press in anglesButton.
+function anglesButton_Callback(hObject, eventdata, handles)
+% hObject    handle to anglesButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+get(handles.alpha,'String');
+get(handles.beta,'String');
+get(handles.gamma,'String');
+
+
+% --- Executes on button press in rotationButton.
+function rotationButton_Callback(hObject, eventdata, handles)
+% hObject    handle to rotationButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+get(handles.vecX,'String');
+get(handles.vecY,'String');
+get(handles.vecZ,'String');
 
 
 % --- Executes on mouse press over figure background, over a disabled or
