@@ -64,6 +64,7 @@ set(handles.axes1,'CameraPosition',...
     [0 0 -5],'CameraUpVector',...
     [0 1 0],'DataAspectRatio',...
     [1 1 1]);
+handles.q0 = {1,0,0,0};
 
 set(handles.axes1,'xlim',[-3 3],'ylim',[-3 3],'visible','off','color','none');
 
@@ -97,7 +98,8 @@ xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
-
+    
+    handles.m0 = To2DPointsTo3D(xmouse, ymouse);
     set(handles.figure1,'WindowButtonMotionFcn',{@my_MouseMoveFcn,hObject});
 end
 guidata(hObject,handles)
@@ -118,8 +120,12 @@ ymouse = mousepos(1,2);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
-    %%% TODO things
-    % implement the magic
+    m0 = handles.m0;
+    q0 = handles.q0;
+    handles.m1 = To2DPointsTo3D(xmouse,ymouse);
+    handles.q1 = QuaternionFrom2Vec(m0,m1);
+    
+    
     q = [1;0;0;0];
     handles.Cube = RedrawCube(q,handles.Cube);
     
@@ -631,17 +637,26 @@ function rotationButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+function m = To2DPointsTo3D(x,y)
+r = sqrt(3);
 
-% --- Executes on button press in eulersButton.
-function eulersButton_Callback(hObject, eventdata, handles)
-% hObject    handle to eulersButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+if x*x+y*y < 0.5*r*r
+    z = abs(sqrt(r*r-(x*x)-(y*y))); 
+else
+    z = (r*r)/(2*sqrt(x*x+y*y));
+    modulePoint = norm([x;y;z]); 
+    x = r*x/modulePoint;
+    y = r*y/modulePoint;
+    z = r*z/modulePoint;
+end
+m=[x;y;z];
+
+function q = QuaternionFrom2Vec(u, v)
+    w = cross(u, v);
+    t = quat(dot(u, v), w.x, w.y, w.z);
+    t.w = length(t) + t.w;
+    q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
+    
 
 
-% --- Executes on mouse press over figure background, over a disabled or
-% --- inactive control, or over an axes background.
-function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+
