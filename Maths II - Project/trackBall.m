@@ -97,8 +97,14 @@ xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
-
+    
+    handles.m0 = points2Dto3D(xmouse,ymouse);
+    
+     %% Saving clicked mouse coords
+     SetInitialVector(m0);
+     
     set(handles.figure1,'WindowButtonMotionFcn',{@my_MouseMoveFcn,hObject});
+    
 end
 guidata(hObject,handles)
 
@@ -662,9 +668,16 @@ get(handles.vecY,'String');
 get(handles.vecZ,'String');
 
 
-% --- Executes on mouse press over figure background, over a disabled or
-% --- inactive control, or over an axes background.
-function figure1_WindowButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function m = points2Dto3D(x,y)
+r = sqrt(3);
+% Shoemake’s arcball
+if((x^2+y^2) < 0.5*r^2)        
+    z = abs(sqrt(r^2 - x^2 - y^2));   
+else 
+    z =  (r^2)/2*sqrt(x^2 + y^2);
+    module = norm([x;y;z]);
+    x = r*x/module;
+    y = r*y/module;
+    z = r*z/module;
+end
+m = [x,y,z];
