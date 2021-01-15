@@ -693,6 +693,24 @@ q = [cos(angle/2);m(1);m(2);m(3)];
 %t.w = length(t) + t.w;
 %q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
 
+function R = MatrixFromQuat(q)
+%If the quaternion is 1,0,0,0, there's no rotation, therefore the R equals
+%to I.
+if q == {1,0,0,0}
+    R = eye(3);
+else
+    
+R= {1-2*q(3)^2-2*q(4)^2, 2*q(2)*q(3)-2*q(4)*q(1), 2*q(2)*q(4)+2*q(3)*q(1);
+    2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2, 2*q(3)*q(4)-2*q(2)*q(1);
+    2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1), 1-w*q(2)^2-w*q(3)^2};
+ 
+end
+
+function UpdateAttitudes(q, handles)
+
+R = MatrixFromQuat(q);
+
+
 function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
 %   Detailed explanation goes here
