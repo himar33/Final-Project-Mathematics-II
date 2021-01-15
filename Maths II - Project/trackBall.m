@@ -715,8 +715,46 @@ end
 
 function UpdateAttitudes(q, handles)
 
+% Calculate Rotation Matrix
 R = MatrixFromQuat(q);
 
+% Set the Quaternion
+set(handles.q_a,'String', num2str(q(1)));
+set(handles.q_b,'String', num2str(q(2)));
+set(handles.q_c,'String', num2str(q(3)));
+set(handles.q_d,'String', num2str(q(4)));
+
+% Set Euler's Axis & Angle
+% Calculate the angle and the vector
+[angle, v] = rotMat2Eaa(R);
+% Calculate the Rotation Vector
+u = v * angle;
+set(handles.axisX,'String', num2str(v(1)));
+set(handles.axisY,'String', num2str(v(2)));
+set(handles.axisZ,'String', num2str(v(3)));
+set(handles.axAngle,'String', num2str(angle));
+
+% Set Euler Angles
+[alpha, beta, gamma] = rotM2eAngles(R);
+set(handles.alpha, 'String', num2str(alpha));
+set(handles.beta, 'String', num2str(beta));
+set(handles.gamma, 'String', num2str(gamma));
+
+% Set Rotation Vector
+set(handles.vecX, 'String', num2str(u(1)));
+set(handles.vecX, 'String', num2str(u(2)));
+set(handles.vecX, 'String', num2str(u(3)));
+
+% Set Rotation Matrix
+set(handles.m11, 'String', num2str(R(1,1)));
+set(handles.m12, 'String', num2str(R(1,2)));
+set(handles.m13, 'String', num2str(R(1,3)));
+set(handles.m21, 'String', num2str(R(2,1)));
+set(handles.m22, 'String', num2str(R(2,2)));
+set(handles.m23, 'String', num2str(R(2,3)));
+set(handles.m31, 'String', num2str(R(3,1)));
+set(handles.m32, 'String', num2str(R(3,2)));
+set(handles.m33, 'String', num2str(R(3,3)));
 
 function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
