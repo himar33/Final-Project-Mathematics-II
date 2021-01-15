@@ -454,7 +454,7 @@ function resetButton_Callback(hObject, eventdata, handles)
 % hObject    handle to resetButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.q_a.String = 0;
+handles.q_a.String = 1;
 handles.q_b.String = 0;
 handles.q_c.String = 0;
 handles.q_d.String = 0;
@@ -635,14 +635,14 @@ function quatButton_Callback(hObject, eventdata, handles)
 % hObject    handle to quatButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-q1(1) = str2double(get(handles.q_a,'String'));
-q1(2) = str2double(get(handles.q_b,'String'));
-q1(3) = str2double(get(handles.q_c,'String'));
-q1(4) = str2double(get(handles.q_d,'String'));
-q1 = q1';
-q1 = q1/norm(q1);
+q(1) = str2double(get(handles.q_a,'String'));
+q(2) = str2double(get(handles.q_b,'String'));
+q(3) = str2double(get(handles.q_c,'String'));
+q(4) = str2double(get(handles.q_d,'String'));
+q = q';
+q = q/norm(q);
 
-R = MatrixFromQuat(q1);
+handles.q0 = q;
 
 handles.cube = RedrawCube(UpdateAttitudes(R,handles), handles.cube);
 
@@ -700,8 +700,8 @@ q = [cos(angle/2);m(1);m(2);m(3)];
 %q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
 
 function R = MatrixFromQuat(q)
-%If the quaternion is 1,0,0,0, there's no rotation, therefore the R equals
-%to I.
+%If the quaternion fisrt number is 1 there's no rotation, therefore the R 
+%equals to I.
 if q(1) == 1
     R = eye(3);
 else
@@ -715,8 +715,46 @@ end
 
 function UpdateAttitudes(q, handles)
 
+% Calculate Rotation Matrix
 R = MatrixFromQuat(q);
 
+% Set the Quaternion
+set(handles.q_a,'String', num2str(q(1)));
+set(handles.q_b,'String', num2str(q(2)));
+set(handles.q_c,'String', num2str(q(3)));
+set(handles.q_d,'String', num2str(q(4)));
+
+% Set Euler's Axis & Angle
+% Calculate the angle and the vector
+[angle, v] = rotMat2Eaa(R);
+% Calculate the Rotation Vector
+u = v * angle;
+set(handles.axisX,'String', num2str(v(1)));
+set(handles.axisY,'String', num2str(v(2)));
+set(handles.axisZ,'String', num2str(v(3)));
+set(handles.axAngle,'String', num2str(angle));
+
+% Set Euler Angles
+[alpha, beta, gamma] = rotM2eAngles(R);
+set(handles.alpha, 'String', num2str(alpha));
+set(handles.beta, 'String', num2str(beta));
+set(handles.gamma, 'String', num2str(gamma));
+
+% Set Rotation Vector
+set(handles.vecX, 'String', num2str(u(1)));
+set(handles.vecX, 'String', num2str(u(2)));
+set(handles.vecX, 'String', num2str(u(3)));
+
+% Set Rotation Matrix
+set(handles.m11, 'String', num2str(R(1,1)));
+set(handles.m12, 'String', num2str(R(1,2)));
+set(handles.m13, 'String', num2str(R(1,3)));
+set(handles.m21, 'String', num2str(R(2,1)));
+set(handles.m22, 'String', num2str(R(2,2)));
+set(handles.m23, 'String', num2str(R(2,3)));
+set(handles.m31, 'String', num2str(R(3,1)));
+set(handles.m32, 'String', num2str(R(3,2)));
+set(handles.m33, 'String', num2str(R(3,3)));
 
 function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
