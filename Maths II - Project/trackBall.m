@@ -96,10 +96,11 @@ ylim = get(handles.axes1,'ylim');
 mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
+global m0;
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     
-    handles.m0 = To2DPointsTo3D(xmouse, ymouse);
+    m0 = To2DPointsTo3D(xmouse, ymouse);
     set(handles.figure1,'WindowButtonMotionFcn',{@my_MouseMoveFcn,hObject});
     
 end
@@ -122,10 +123,12 @@ ymouse = mousepos(1,2);
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     m0 = handles.m0;
+    m1 = To2DPointsTo3D(xmouse,ymouse);
     q0 = handles.q0;
-    handles.m1 = To2DPointsTo3D(xmouse,ymouse);
-    handles.q1 = QuaternionFrom2Vec(m0,m1);
+    q1 = QuaternionFrom2Vec(m0,m1);
+    q1 = q1/norm(q1);
     
+    qk = MultQuat(q0,q1);
     
     q = [1;0;0;0];
     handles.Cube = RedrawCube(q,handles.Cube);
@@ -632,10 +635,10 @@ function quatButton_Callback(hObject, eventdata, handles)
 % hObject    handle to quatButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-get(handles.q_a,'String');
-get(handles.q_b,'String');
-get(handles.q_c,'String');
-get(handles.q_d,'String');
+q1(1) = str2double(get(handles.q_a,'String'));
+q1(2) = str2double(get(handles.q_b,'String'));
+q1(3) = str2double(get(handles.q_c,'String'));
+q1(4) = str2double(get(handles.q_d,'String'));
 
 
 % --- Executes on button press in eulersButton.
@@ -647,28 +650,6 @@ get(handles.axisX,'String');
 get(handles.axisY,'String');
 get(handles.axisZ,'String');
 get(handles.axAngle,'String');
-
-function m = To2DPointsTo3D(x,y)
-r = sqrt(3);
-
-if x*x+y*y < 0.5*r*r
-    z = abs(sqrt(r*r-(x*x)-(y*y))); 
-else
-    z = (r*r)/(2*sqrt(x*x+y*y));
-    modulePoint = norm([x;y;z]); 
-    x = r*x/modulePoint;
-    y = r*y/modulePoint;
-    z = r*z/modulePoint;
-end
-m=[x;y;z];
-
-function q = QuaternionFrom2Vec(u, v)
-    w = cross(u, v);
-    t = quat(dot(u, v), w.x, w.y, w.z);
-    t.w = length(t) + t.w;
-    q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
-    
-
 
 % --- Executes on button press in anglesButton.
 function anglesButton_Callback(hObject, eventdata, handles)
@@ -688,3 +669,35 @@ function rotationButton_Callback(hObject, eventdata, handles)
 get(handles.vecX,'String');
 get(handles.vecY,'String');
 get(handles.vecZ,'String');
+
+function m = To2DPointsTo3D(x,y)
+r = sqrt(3);
+
+if x*x+y*y < 0.5*r*r
+    z = abs(sqrt(r*r-(x*x)-(y*y))); 
+else
+    z = (r*r)/(2*sqrt(x*x+y*y));
+    modulePoint = norm([x;y;z]); 
+    x = r*x/modulePoint;
+    y = r*y/modulePoint;
+    z = r*z/modulePoint;
+end
+m=[x;y;z];
+
+function q = QuaternionFrom2Vec(u, v)
+angle = acos((v'*u)/(det(v)*det(u)));
+c = cross(u, v);
+m = sin(angle/2)*(c*det(c));
+q = [cos(angle/2);m(1);m(2);m(3)];
+%t = quat(dot(u, v), w.x, w.y, w.z);
+%t.w = length(t) + t.w;
+%q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
+
+function qk = MultQuat(q_a,q_b)
+%MULTQUAT Summary of this function goes here
+%   Detailed explanation goes here
+%   Set Quaternion C = A * B
+    qk(1) = q_a(1,1)*q_b(1,1) - q_a(1,2)*q_b(1,2) - q_a(1,3)*q_b(1,3) - q_a(1,4)*q_b(1,4);
+    qk(2) = q_a(1,1)*q_b(1,2) + q_a(1,2)*q_b(1,1) + q_a(1,3)*q_b(1,4) - q_a(1,4)*q_b(1,3);
+    qk(3) = q_a(1,1)*q_b(1,3) - q_a(1,2)*q_b(1,4) + q_a(1,3)*q_b(1,1) + q_a(1,4)*q_b(1,2);
+    qk(4) = q_a(1,1)*q_b(1,4) + q_a(1,2)*q_b(1,3) - q_a(1,3)*q_b(1,2) + q_a(1,4)*q_b(1,1);
