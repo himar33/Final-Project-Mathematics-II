@@ -454,7 +454,7 @@ function resetButton_Callback(hObject, eventdata, handles)
 % hObject    handle to resetButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.q_a.String = 0;
+handles.q_a.String = 1;
 handles.q_b.String = 0;
 handles.q_c.String = 0;
 handles.q_d.String = 0;
@@ -635,14 +635,14 @@ function quatButton_Callback(hObject, eventdata, handles)
 % hObject    handle to quatButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-q1(1) = str2double(get(handles.q_a,'String'));
-q1(2) = str2double(get(handles.q_b,'String'));
-q1(3) = str2double(get(handles.q_c,'String'));
-q1(4) = str2double(get(handles.q_d,'String'));
-q1 = q1';
-q1 = q1/norm(q1);
+q(1) = str2double(get(handles.q_a,'String'));
+q(2) = str2double(get(handles.q_b,'String'));
+q(3) = str2double(get(handles.q_c,'String'));
+q(4) = str2double(get(handles.q_d,'String'));
+q = q';
+q = q/norm(q);
 
-R = MatrixFromQuat(q1);
+handles.q0 = q;
 
 handles.cube = RedrawCube(UpdateAttitudes(R,handles), handles.cube);
 
@@ -700,8 +700,8 @@ q = [cos(angle/2);m(1);m(2);m(3)];
 %q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
 
 function R = MatrixFromQuat(q)
-%If the quaternion is 1,0,0,0, there's no rotation, therefore the R equals
-%to I.
+%If the quaternion fisrt number is 1 there's no rotation, therefore the R 
+%equals to I.
 if q(1) == 1
     R = eye(3);
 else
