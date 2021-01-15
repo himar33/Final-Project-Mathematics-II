@@ -22,7 +22,7 @@ function varargout = trackBall(varargin)
 
 % Edit the above text to modify the response to help trackBall
 
-% Last Modified by GUIDE v2.5 14-Jan-2021 18:36:13
+% Last Modified by GUIDE v2.5 15-Jan-2021 17:25:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -53,20 +53,20 @@ function trackBall_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to trackBall (see VARARGIN)
 
 
-set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.axes1});
-set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
-axes(handles.axes1);
+set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.cube});
+set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.cube});
+axes(handles.cube);
+q0 = {1,0,0,0};
 
 handles.Cube=DrawCube();
 
-set(handles.axes1,'CameraPosition',...
+set(handles.cube,'CameraPosition',...
     [0 0 5],'CameraTarget',...
     [0 0 -5],'CameraUpVector',...
     [0 1 0],'DataAspectRatio',...
     [1 1 1]);
-handles.q0 = {1,0,0,0};
 
-set(handles.axes1,'xlim',[-3 3],'ylim',[-3 3],'visible','off','color','none');
+set(handles.cube,'xlim',[-3 3],'ylim',[-3 3],'visible','off','color','none');
 
 % Choose default command line output for trackBall
 handles.output = hObject;
@@ -91,9 +91,9 @@ varargout{1} = handles.output;
 function my_MouseClickFcn(obj,event,hObject)
 
 handles=guidata(obj);
-xlim = get(handles.axes1,'xlim');
-ylim = get(handles.axes1,'ylim');
-mousepos=get(handles.axes1,'CurrentPoint');
+xlim = get(handles.cube,'xlim');
+ylim = get(handles.cube,'ylim');
+mousepos=get(handles.cube,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 global m0;
@@ -114,9 +114,9 @@ guidata(hObject,handles);
 function my_MouseMoveFcn(obj,event,hObject)
 
 handles=guidata(obj);
-xlim = get(handles.axes1,'xlim');
-ylim = get(handles.axes1,'ylim');
-mousepos=get(handles.axes1,'CurrentPoint');
+xlim = get(handles.cube,'xlim');
+ylim = get(handles.cube,'ylim');
+mousepos=get(handles.cube,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
@@ -639,6 +639,12 @@ q1(1) = str2double(get(handles.q_a,'String'));
 q1(2) = str2double(get(handles.q_b,'String'));
 q1(3) = str2double(get(handles.q_c,'String'));
 q1(4) = str2double(get(handles.q_d,'String'));
+q1 = q1';
+q1 = q1/norm(q1);
+
+R = MatrixFromQuat(q1);
+
+handles.cube = RedrawCube(UpdateAttitudes(R,handles), handles.cube);
 
 
 % --- Executes on button press in eulersButton.
@@ -696,13 +702,14 @@ q = [cos(angle/2);m(1);m(2);m(3)];
 function R = MatrixFromQuat(q)
 %If the quaternion is 1,0,0,0, there's no rotation, therefore the R equals
 %to I.
-if q == {1,0,0,0}
+if q(1) == 1
     R = eye(3);
 else
     
 R= {1-2*q(3)^2-2*q(4)^2, 2*q(2)*q(3)-2*q(4)*q(1), 2*q(2)*q(4)+2*q(3)*q(1);
     2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2, 2*q(3)*q(4)-2*q(2)*q(1);
     2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1), 1-w*q(2)^2-w*q(3)^2};
+R = R/norm(R);
  
 end
 
