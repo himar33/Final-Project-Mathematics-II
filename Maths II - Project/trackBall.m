@@ -141,17 +141,6 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     
     m0 = getGlobalVector();
     q0 = getGlobalQuat();
-    
-     %% Quaternion from two vectors
-    %axis = cross(m0, m1); % Obtain axis
-    %angle = acosd((m1'*m0)/(norm(m1)*norm(m0))); % Obtain angle
-    %axis = axis / norm(axis);
-    %q1 = [cosd(angle/2),sin(angle/2) * axis']';
-    
-    angle = acosd((v'*u)/(norm(v)*norm(u)));
-c = cross(u, v);
-m = sind(angle/2)*(c*norm(c));
-q = [cosd(angle/2);m(1);m(2);m(3)];
 
     q1 = QuaternionFrom2Vec(m0,m1);
     q1 = q1/norm(q1);
@@ -722,8 +711,8 @@ m=[x;y;z];
 function q = QuaternionFrom2Vec(u, v)
 angle = acosd((v'*u)/(norm(v)*norm(u)));
 c = cross(u, v);
-m = sind(angle/2)*(c*norm(c));
-q = [cosd(angle/2);m(1);m(2);m(3)];
+c = c / norm(c);
+q = [cosd(angle/2),sin(angle/2) * c']';
 
 function R = MatrixFromQuat(q)
 %If the quaternion fisrt number is 1 there's no rotation, therefore the R 
