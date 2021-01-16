@@ -143,11 +143,17 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     q0 = getGlobalQuat();
     
      %% Quaternion from two vectors
-    axis = cross(m0, m1); % Obtain axis
-    angle = acosd((m1'*m0)/(norm(m1)*norm(m0))); % Obtain angle
-    axis = axis / norm(axis);
-    q1 = [cosd(angle/2),sin(angle/2) * axis']';
-    %q1 = QuaternionFrom2Vec(m0,m1);
+    %axis = cross(m0, m1); % Obtain axis
+    %angle = acosd((m1'*m0)/(norm(m1)*norm(m0))); % Obtain angle
+    %axis = axis / norm(axis);
+    %q1 = [cosd(angle/2),sin(angle/2) * axis']';
+    
+    angle = acosd((v'*u)/(norm(v)*norm(u)));
+c = cross(u, v);
+m = sind(angle/2)*(c*norm(c));
+q = [cosd(angle/2);m(1);m(2);m(3)];
+
+    q1 = QuaternionFrom2Vec(m0,m1);
     q1 = q1/norm(q1);
     q1 = MultQuat(q0,q1);
  
@@ -202,7 +208,7 @@ for q = 1:length(c)
     h(q).FaceColor = c(q,:);
 end
 
-function h = RedrawCube(R,hin)
+function h = RedrawCube(q,hin)
 
 h = hin;
 c = 1/255*[255 248 88;
@@ -222,7 +228,7 @@ M0 = [    -1  -1 1;   %Node 1
     1  -1 -1]; %Node 8
 
 %% TODO rotate M by using q
-M = (R*M0')';
+M = (q*M0')';
 
 x = M(:,1);
 y = M(:,2);
@@ -714,17 +720,14 @@ end
 m=[x;y;z];
 
 function q = QuaternionFrom2Vec(u, v)
-angle = acos((v'*u)/(det(v)*det(u)));
+angle = acosd((v'*u)/(norm(v)*norm(u)));
 c = cross(u, v);
-m = sin(angle/2)*(c*det(c));
-q = [cos(angle/2);m(1);m(2);m(3)];
+m = sind(angle/2)*(c*norm(c));
+q = [cosd(angle/2);m(1);m(2);m(3)];
 
 function R = MatrixFromQuat(q)
 %If the quaternion fisrt number is 1 there's no rotation, therefore the R 
 %equals to I.
-%R = [q(1)^2+q(2)^2-q(3)^2-q(4)^2, 2*q(2)*q(3)-2*q(1)*q(4), 2*q(2)*q(4)+2*q(1)*q(3);
- %   2*q(2)*q(3)+2*q(1)*q(4),    q(1)^2-q(2)^2+q(3)^2-q(4)^2, 2*q(3)*q(4)-2*q(1)*q(2);
-  %  2*q(2)*q(4)-2*q(1)*q(3),    2*q(3)*q(4)+2*q(1)*q(2),    q(1)^2-q(2)^2-q(3)^2+q(4)^2];
 if q(1) == 1
     R = eye(3);
 else
