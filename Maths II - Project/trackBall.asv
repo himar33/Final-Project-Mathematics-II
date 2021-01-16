@@ -156,7 +156,7 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     setGlobalVector(m1);
     setGlobalQuat(q1);
     
-    handles.Cube = RedrawCube(R,handles.Cube);
+    handles.Cube = RedrawCube(q,handles.Cube);
     UpdateAttitudes(R, handles);
     
 end
@@ -202,7 +202,7 @@ for q = 1:length(c)
     h(q).FaceColor = c(q,:);
 end
 
-function h = RedrawCube(R,hin)
+function h = RedrawCube(q,hin)
 
 h = hin;
 c = 1/255*[255 248 88;
@@ -212,7 +212,7 @@ c = 1/255*[255 248 88;
     255 178 0;
     255 0 0];
 
-M0 = [    -1  -1 1;   %Node 1
+M = [    -1  -1 1;   %Node 1
     -1   1 1;   %Node 2
     1   1 1;   %Node 3
     1  -1 1;   %Node 4
@@ -222,7 +222,7 @@ M0 = [    -1  -1 1;   %Node 1
     1  -1 -1]; %Node 8
 
 %% TODO rotate M by using q
-M = (R*M0')';
+
 
 x = M(:,1);
 y = M(:,2);
@@ -668,11 +668,9 @@ q(4) = str2double(get(handles.q_d,'String'));
 q = q';
 q = q/norm(q);
 
-R = MatrixFromQuat(q);
+handles.q0 = q;
 
-SetGlobalQuat(UpdateAttitudes(R, handles));
-
-handles.cube = RedrawCube(R, handles.cube);
+handles.cube = RedrawCube(UpdateAttitudes(R,handles), handles.cube);
 
 
 % --- Executes on button press in eulersButton.
@@ -705,7 +703,7 @@ get(handles.vecY,'String');
 get(handles.vecZ,'String');
 
 function m = To2DPointsTo3D(x,y)
-r = 70;
+r = sqrt(3);
 
 if x*x+y*y < 0.5*r*r
     z = abs(sqrt(r*r-(x*x)-(y*y))); 
@@ -735,14 +733,14 @@ R = [q(1)^2+q(2)^2-q(3)^2-q(4)^2, 2*q(2)*q(3)-2*q(1)*q(4), 2*q(2)*q(4)+2*q(1)*q(
     2*q(2)*q(4)-2*q(1)*q(3),    2*q(3)*q(4)+2*q(1)*q(2),    q(1)^2-q(2)^2-q(3)^2+q(4)^2];
 %if q(1) == 1
  %   R = eye(3);
-%else
+else
     
-%R= {1-2*q(3)^2-2*q(4)^2, 2*q(2)*q(3)-2*q(4)*q(1), 2*q(2)*q(4)+2*q(3)*q(1);
- %   2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2, 2*q(3)*q(4)-2*q(2)*q(1);
-  %  2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1), 1-w*q(2)^2-w*q(3)^2};
-%R = R/norm(R);
+R= {1-2*q(3)^2-2*q(4)^2, 2*q(2)*q(3)-2*q(4)*q(1), 2*q(2)*q(4)+2*q(3)*q(1);
+    2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2, 2*q(3)*q(4)-2*q(2)*q(1);
+    2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1), 1-w*q(2)^2-w*q(3)^2};
+R = R/norm(R);
  
-%end
+end
 
 function UpdateAttitudes(q, handles)
 
