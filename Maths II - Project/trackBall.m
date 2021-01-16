@@ -780,10 +780,8 @@ function qk = MultQuat(q_a,q_b)
 
 function q = QuatFromMatrix(m)
 
-trace = m(1,1) + m(2,2) + m(3,3) + 1;
-
-if(trace > 0)
-    S = sqrt(trace + 1) *2;
+if(trace(m) > 0)
+    S = sqrt(trace(m) + 1) *2;
     q(1) = 0.25 * S;
     q(2) = (m(3,2) - m(2,3)) / S;
     q(3) = (m(1,3) - m(3,1)) / S;
