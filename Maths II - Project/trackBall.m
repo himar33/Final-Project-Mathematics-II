@@ -480,20 +480,15 @@ function resetButton_Callback(hObject, eventdata, handles)
 % hObject    handle to resetButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.q_a.String = 1;
-handles.q_b.String = 0;
-handles.q_c.String = 0;
-handles.q_d.String = 0;
-handles.axisX.String = 0;
-handles.axisY.String = 0;
-handles.axisZ.String = 0;
-handles.axAngle.String = 0;
-handles.vecX.String = 0;
-handles.vecY.String = 0;
-handles.vecZ.String = 0;
-handles.alpha.String = 0;
-handles.beta.String = 0;
-handles.gamma.String = 0;
+setGlobalQuat([1 0 0 0]');
+
+q1 = getGlobalQuat();
+
+R = MatrixFromQuat(q1);
+
+UpdateAttitudes(R, handles);
+
+handles.Cube = RedrawCube(R,handles.Cube);
 
 
 
@@ -723,26 +718,23 @@ angle = acos((v'*u)/(det(v)*det(u)));
 c = cross(u, v);
 m = sin(angle/2)*(c*det(c));
 q = [cos(angle/2);m(1);m(2);m(3)];
-%t = quat(dot(u, v), w.x, w.y, w.z);
-%t.w = length(t) + t.w;
-%q = (t0+t1+t2+t3)/sqrt(t0^2+t1^2+t2^2+t3^2);
 
 function R = MatrixFromQuat(q)
 %If the quaternion fisrt number is 1 there's no rotation, therefore the R 
 %equals to I.
-R = [q(1)^2+q(2)^2-q(3)^2-q(4)^2, 2*q(2)*q(3)-2*q(1)*q(4), 2*q(2)*q(4)+2*q(1)*q(3);
-    2*q(2)*q(3)+2*q(1)*q(4),    q(1)^2-q(2)^2+q(3)^2-q(4)^2, 2*q(3)*q(4)-2*q(1)*q(2);
-    2*q(2)*q(4)-2*q(1)*q(3),    2*q(3)*q(4)+2*q(1)*q(2),    q(1)^2-q(2)^2-q(3)^2+q(4)^2];
-%if q(1) == 1
- %   R = eye(3);
-%else
+%R = [q(1)^2+q(2)^2-q(3)^2-q(4)^2, 2*q(2)*q(3)-2*q(1)*q(4), 2*q(2)*q(4)+2*q(1)*q(3);
+ %   2*q(2)*q(3)+2*q(1)*q(4),    q(1)^2-q(2)^2+q(3)^2-q(4)^2, 2*q(3)*q(4)-2*q(1)*q(2);
+  %  2*q(2)*q(4)-2*q(1)*q(3),    2*q(3)*q(4)+2*q(1)*q(2),    q(1)^2-q(2)^2-q(3)^2+q(4)^2];
+if q(1) == 1
+    R = eye(3);
+else
     
-%R= {1-2*q(3)^2-2*q(4)^2, 2*q(2)*q(3)-2*q(4)*q(1), 2*q(2)*q(4)+2*q(3)*q(1);
- %   2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2, 2*q(3)*q(4)-2*q(2)*q(1);
-  %  2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1), 1-w*q(2)^2-w*q(3)^2};
-%R = R/norm(R);
+R = [1-2*q(3)^2-2*q(4)^2,     2*q(2)*q(3)-2*q(4)*q(1),      2*q(2)*q(4)+2*q(3)*q(1);
+     2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2,          2*q(3)*q(4)-2*q(2)*q(1);
+     2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1),       1-2*q(2)^2-2*q(3)^2];
+R = R/norm(R);
  
-%end
+end
 
 function UpdateAttitudes(q, handles)
 
@@ -787,13 +779,11 @@ set(handles.m31, 'String', num2str(R(3,1)));
 set(handles.m32, 'String', num2str(R(3,2)));
 set(handles.m33, 'String', num2str(R(3,3)));
 
-function qk = MultQuat(q1,q2)
+function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
 %   Detailed explanation goes here
 %   Set Quaternion C = A * B
-  qk(1) = q1(1)*q2(1)-([q1(2);q1(3);q1(4)]'*[q2(2);q2(3);q2(4)]);
-  qk(2:4) = q1(1)*[q2(2);q2(3);q2(4)]+q2(1)*[q1(2);q1(3);q1(4)]+cross([q1(2);q1(3);q1(4)],[q2(2);q2(3);q2(4)]);
-    %qk(1) = q_a(1,1)*q_b(1,1) - q_a(1,2)*q_b(1,2) - q_a(1,3)*q_b(1,3) - q_a(1,4)*q_b(1,4);
-    %qk(2) = q_a(1,1)*q_b(1,2) + q_a(1,2)*q_b(1,1) + q_a(1,3)*q_b(1,4) - q_a(1,4)*q_b(1,3);
-    %qk(3) = q_a(1,1)*q_b(1,3) - q_a(1,2)*q_b(1,4) + q_a(1,3)*q_b(1,1) + q_a(1,4)*q_b(1,2);
-    %qk(4) = q_a(1,1)*q_b(1,4) + q_a(1,2)*q_b(1,3) - q_a(1,3)*q_b(1,2) + q_a(1,4)*q_b(1,1);
+  qk(1) = q_a(1)*q_b(1) - ([q_a(2);q_a(3);q_a(4)]'*[q_b(2);q_b(3);q_b(4)]);
+  qk(2) = q_a(1)*q_b(2) + q_a(2)*q_b(1) + q_a(3)*q_b(4) - q_a(4)*q_b(3);
+  qk(3) = q_a(1)*q_b(3) - q_a(2)*q_b(4) + q_a(3)*q_b(1) + q_a(4)*q_b(2);
+  qk(4) = q_a(1)*q_b(4) + q_a(2)*q_b(3) - q_a(3)*q_b(2) + q_a(4)*q_b(1);
