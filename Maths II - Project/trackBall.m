@@ -144,15 +144,18 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     q1 = QuaternionFrom2Vec(m0,m1);
     q1 = q1/norm(q1);
-    q1 = MultQuat(q1,q0);
- 
-    R = MatrixFromQuat(q1);
-    
+    q1 = MultQuat(q1,q0);    
+    R = MatrixFromQuat(q1);  
+   % Transform the vector and the quat
     setGlobalVector(m1);
     setGlobalQuat(q1);
-    
+    %Publish new attitudes
     UpdateAttitudes(R, handles);
-    handles.Cube = RedrawCube(R,handles.Cube);
+    % Redraw Cube
+    handles.Cube = RedrawCube(q1,handles.Cube);
+    %Save actual data
+    handles.q0 = q1;
+    handles.m0 = m1;
     
 end
 guidata(hObject,handles);
@@ -217,7 +220,9 @@ M0 = [    -1  -1 1;   %Node 1
     1  -1 -1]; %Node 8
 
 %% TODO rotate M by using q
-M = (q*M0')';
+
+R = MatrixFromQuat(q);
+M = (R*M0')';
 
 x = M(:,1);
 y = M(:,2);
@@ -469,23 +474,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in resetButton.
-function resetButton_Callback(hObject, eventdata, handles)
-% hObject    handle to resetButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-setGlobalQuat([1 0 0 0]');
-setGlobalVector([0 0 0]');
-
-R = eye(3);
-
-setGlobalQuat(UpdateAttitudes(R,handles));
-
-handles.Cube = RedrawCube(R,handles.Cube);
-
-
-
 function alpha_Callback(hObject, eventdata, handles)
 % hObject    handle to alpha (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -644,6 +632,20 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+% --- Executes on button press in resetButton.
+function resetButton_Callback(hObject, eventdata, handles)
+% hObject    handle to resetButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+setGlobalQuat([1 0 0 0]');
+
+q1 = getGlobalQuat();
+
+R = MatrixFromQuat(q1);
+
+UpdateAttitudes(R, handles);
+
+handles.Cube = RedrawCube(R,handles.Cube);
 
 % --- Executes on button press in quatButton.
 function quatButton_Callback(hObject, eventdata, handles)
@@ -655,14 +657,12 @@ str2double(get(handles.q_b,'String'));
 str2double(get(handles.q_c,'String'));
 str2double(get(handles.q_d,'String'))];
 
+q=q';
 q = q/norm(q);
-
-R = MatrixFromQuat(q);
+handles.q0 = q;
 
 setGlobalQuat(UpdateAttitudes(R, handles));
-
 handles.cube = RedrawCube(R, handles.cube);
-
 
 % --- Executes on button press in eulersButton.
 function eulersButton_Callback(hObject, eventdata, handles)
@@ -679,10 +679,17 @@ function anglesButton_Callback(hObject, eventdata, handles)
 % hObject    handle to anglesButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-get(handles.alpha,'String');
-get(handles.beta,'String');
-get(handles.gamma,'String');
+alpha = str2double(get(handles.alpha,'String'));
+beta =  str2double(get(handles.beta,'String'));
+gamma = str2double(get(handles.gamma,'String'));
 
+R = eAngles2rotM(alpha,beta,gamma);
+q = QuatFromMatrix(R);
+q = q/norm(q);
+q = q';
+setGlobalQuat(q);
+UpdateAttitudes(q,handles);
+handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in rotationButton.
 function rotationButton_Callback(hObject, eventdata, handles)
@@ -727,8 +734,9 @@ R = R/norm(R);
  
 end
 
-function q = UpdateAttitudes(R, handles)
+function UpdateAttitudes(q, handles)
 
+R = MatrixFromQuat(q);
 % Set Rotation Matrix
 set(handles.m11, 'String', num2str(R(1,1)));
 set(handles.m12, 'String', num2str(R(1,2)));
@@ -801,7 +809,7 @@ elseif (m(2,2) > m(3,3))
     q(3) = 0.25 * S;
     q(4) = (m(2,3) + m(3,2)) / S;
 else
-    S = sqrt(1.0 + m(2,2) - m(0,0) - m(1,1)) * 2;
+    S = sqrt(1.0 + m(3,3) - m(1,1) - m(2,2)) * 2;
     q(1) = (m(2,1) - m(1,2)) / S;
     q(2) = (m(1,3) + m(3,1)) / S;
     q(3) = (m(2,3) + m(3,2)) / S;
