@@ -759,22 +759,22 @@ set(handles.axAngle,'String', round(angle,3));
 
 % Set Euler Angles
 [alpha, beta, gamma] = rotM2eAngles(R);
-set(handles.alpha, 'String', round(alpha,3));
-set(handles.beta, 'String', round(beta,3));
-set(handles.gamma, 'String', round(gamma,3));
+set(handles.alpha, 'String', round(alpha));
+set(handles.beta, 'String', round(beta));
+set(handles.gamma, 'String', round(gamma));
 
 % Set the Quaternion
 q = QuatFromMatrix(R);
-set(handles.q_a,'String', round(q(1),3));
-set(handles.q_b,'String', round(q(2),3));
-set(handles.q_c,'String', round(q(3),3));
-set(handles.q_d,'String', round(q(4),3));
+set(handles.q_a,'String', num2str(q(1)));
+set(handles.q_b,'String', num2str(q(2)));
+set(handles.q_c,'String', num2str(q(3)));
+set(handles.q_d,'String', num2str(q(4)));
 
 % Set Rotation Vector
 u = v * angle;
-set(handles.vecX, 'String', round(u(1),3));
-set(handles.vecY, 'String', round(u(2),3));
-set(handles.vecZ, 'String', round(u(3),3));
+set(handles.vecX, 'String', num2str(u(1)));
+set(handles.vecY, 'String', num2str(u(2)));
+set(handles.vecZ, 'String', num2str(u(3)));
 
 function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
