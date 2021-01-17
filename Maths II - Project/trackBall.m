@@ -56,6 +56,8 @@ function trackBall_OpeningFcn(hObject, eventdata, handles, varargin)
 set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.cube});
 set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.cube});
 axes(handles.cube);
+
+%On start, we reset q0 to 1,0,0,0 in order to do the first push
 setGlobalQuat([1 0 0 0]');
 
 handles.Cube=DrawCube();
@@ -88,22 +90,29 @@ function varargout = trackBall_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+% This functions set and Gets the quaternion and the vector, which are q0
+% and m0
+
+% Sets the vector to m0
 function setGlobalVector(val)
 global v
 v = val;
-
+%Gets the m0
 function r = getGlobalVector
 global v
 r = v;
 
+% Sets the quaternion to q0
 function setGlobalQuat(val)
 global q
 q = val;
 
+% Gets the q0
 function r = getGlobalQuat
 global q
 r = q;
 
+% On click, gets the first vector and sets it as global vector (m0)
 function my_MouseClickFcn(obj,event,hObject)
 
 handles=guidata(obj);
@@ -126,6 +135,8 @@ handles=guidata(hObject);
 set(handles.figure1,'WindowButtonMotionFcn','');
 guidata(hObject,handles);
 
+% While dragging the mouse, we calculate continuosly the new vector, and we
+% Update the Attitudes and so on
 function my_MouseMoveFcn(obj,event,hObject)
 
 handles=guidata(obj);
@@ -135,17 +146,20 @@ mousepos=get(handles.cube,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
+% If the mouse is inside the axe boundaries
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     
+    % Sets m1 to the mouse
     m1 = To2DPointsTo3D(xmouse,ymouse);
     
     m0 = getGlobalVector();
     q0 = getGlobalQuat();
 
+    % Calculate the quaternion
     q1 = QuaternionFrom2Vec(m0,m1);
     q1 = q1/norm(q1);
     q1 = MultQuat(q1,q0);  
-   % Transform the vector and the quat
+    % Transform the vector and the quat
     setGlobalVector(m1);
     setGlobalQuat(q1);
     % Redraw Cube
@@ -216,7 +230,7 @@ M0 = [    -1  -1 1;   %Node 1
     1  -1 -1]; %Node 8
 
 %% TODO rotate M by using q
-
+%Calculate the Rotation Matrix
 R = MatrixFromQuat(q);
 M = (R*M0')';
 
@@ -628,19 +642,25 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+%% Buttons
+
 % --- Executes on button press in resetButton.
 function resetButton_Callback(hObject, eventdata, handles)
 % hObject    handle to resetButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Reset q0 and m0
 setGlobalQuat([1 0 0 0]');
 setGlobalVector([0 0 0]');
 
 q = getGlobalQuat();
 
+% Update new attitudes
 UpdateAttitudes(q, handles);
+% Save data
 setGlobalQuat(q);
-
+% Redraw new Cube
 handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in quatButton.
@@ -648,16 +668,20 @@ function quatButton_Callback(hObject, eventdata, handles)
 % hObject    handle to quatButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Gets new quaternion
 q = [str2double(get(handles.q_a,'String'));
 str2double(get(handles.q_b,'String'));
 str2double(get(handles.q_c,'String'));
 str2double(get(handles.q_d,'String'))];
-
 q = q/norm(q);
 
-handles.cube = RedrawCube(q, handles.Cube);
+% Update new attitudes
 UpdateAttitudes(q, handles);
+% Save data
 setGlobalQuat(q);
+% Redraw new Cube
+handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in eulersButton.
 function eulersButton_Callback(hObject, eventdata, handles)
@@ -671,6 +695,8 @@ a = str2double(get(handles.axAngle,'String'));
 
 det_u = sqrt(u(1)^2+u(2)^2+u(3)^2);
 
+%If the angle is 0 or the det of the vector is 0, then the Rotation Matrix
+%is I.
 if(a == 0 || det_u == 0)
     R = eye(3);
 else
@@ -680,9 +706,12 @@ end
 q = QuatFromMatrix(R);
 q = q/norm(q);
 
-handles.Cube = RedrawCube(q, handles.Cube);
-setGlobalQuat(q);
+% Update new attitudes
 UpdateAttitudes(q, handles);
+% Save data
+setGlobalQuat(q);
+% Redraw new Cube
+handles.Cube = RedrawCube(q,handles.Cube);
 
 
 % --- Executes on button press in anglesButton.
@@ -694,14 +723,18 @@ alpha = str2double(get(handles.alpha,'String'));
 beta =  str2double(get(handles.beta,'String'));
 gamma = str2double(get(handles.gamma,'String'));
 
+% Calculates the Rotation Matrix and the Quaternion
 R = eAngles2rotM(alpha,beta,gamma);
 q = QuatFromMatrix(R);
 q = q/norm(q);
 q = q';
 
-handles.Cube = RedrawCube(q,handles.Cube);
+% Update new attitudes
+UpdateAttitudes(q, handles);
+% Save data
 setGlobalQuat(q);
-UpdateAttitudes(q,handles);
+% Redraw new Cube
+handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in rotationButton.
 function rotationButton_Callback(hObject, eventdata, handles)
@@ -715,6 +748,7 @@ vZ = str2double(get(handles.vecZ,'String'));
 v = [vX, vY, vZ]';
 normV = norm(v);
 
+% If the normal of the Vector is 0, there's no rotation
 if(normV == 0)
     R = eye(3);
 else
@@ -722,13 +756,21 @@ else
     R = eye(3) * cosd(normV) + ((1 - cosd(normV)) / normV.^ 2) * (v * v') + (sind(normV) / normV) * C;
 end
 
+% Calculates new quaternion
 q = QuatFromMatrix(R);
 q = q/norm(q);
+q = q';
 
-handles.Cube = RedrawCube(q, handles.Cube);
-setGlobalQuat(q);
+% Update new attitudes
 UpdateAttitudes(q, handles);
+% Save data
+setGlobalQuat(q);
+% Redraw new Cube
+handles.Cube = RedrawCube(q,handles.Cube);
 
+%%Functions
+
+% Returns a 3D vector from a 2D point
 function m = To2DPointsTo3D(x,y)
 r = 70;
 
@@ -743,12 +785,14 @@ else
 end
 m=[x;y;z];
 
+% Returns a quaternion from 2 unity vectors
 function q = QuaternionFrom2Vec(u, v)
 c = cross(u, v);
 angle = acosd((v'*u)/(norm(v)*norm(u)));
 c = c / norm(c);
 q = [cosd(angle/2),sin(angle/2) * c']';
 
+% Returns the Rotation Matrix from a quaternion
 function R = MatrixFromQuat(q)
 %If the quaternion fisrt number is 1 there's no rotation, therefore the R 
 %equals to I.
@@ -761,6 +805,7 @@ else
  
 end
 
+% Updates the new data
 function UpdateAttitudes(q, handles)
 
 R = MatrixFromQuat(q);
@@ -778,7 +823,7 @@ set(handles.m33, 'String', round(R(3,3),3));
 % Set Euler's Axis & Angle
 % Calculate the angle and the vector
 [angle, v] = rotMat2Eaa(R);
-% Calculate the Rotation Vector
+% Set the Rotation Vector and Angle
 set(handles.axAngle,'String', round(angle,3));
 set(handles.axisX,'String', round(v(1),3));
 set(handles.axisY,'String', round(v(2),3));
@@ -803,19 +848,21 @@ set(handles.vecX, 'String', round(u(1),3));
 set(handles.vecY, 'String', round(u(2),3));
 set(handles.vecZ, 'String', round(u(3),3));
 
+% Return a quaternion from the multiplication of 2 quaternions
 function qk = MultQuat(q_a,q_b)
-%MULTQUAT Summary of this function goes here
-%   Detailed explanation goes here
-%   Set Quaternion C = A * B
+
   qk(1) = q_a(1)*q_b(1) - ([q_a(2);q_a(3);q_a(4)]'*[q_b(2);q_b(3);q_b(4)]);
   qk(2) = q_a(1)*q_b(2) + q_a(2)*q_b(1) + q_a(3)*q_b(4) - q_a(4)*q_b(3);
   qk(3) = q_a(1)*q_b(3) - q_a(2)*q_b(4) + q_a(3)*q_b(1) + q_a(4)*q_b(2);
   qk(4) = q_a(1)*q_b(4) + q_a(2)*q_b(3) - q_a(3)*q_b(2) + q_a(4)*q_b(1);
 
 
+% Returns a quaternion from a Rotation Matrix
 function q = QuatFromMatrix(m)
 q = [1 0 0 0]';
 m_d = [m(1,1),m(2,2),m(3,3)];
+% If the trace has different results, we use different formulas according
+% to the value of the trace
 if(trace(m) > 0)
     S = sqrt(trace(m) + 1) *2;
     q(1) = 0.25 * S;
