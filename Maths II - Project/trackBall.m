@@ -669,10 +669,23 @@ function eulersButton_Callback(hObject, eventdata, handles)
 % hObject    handle to eulersButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-get(handles.axisX,'String');
-get(handles.axisY,'String');
-get(handles.axisZ,'String');
-get(handles.axAngle,'String');
+u(1) = str2double(get(handles.axisX,'String'));
+u(2) = str2double(get(handles.axisY,'String'));
+u(3) = str2double(get(handles.axisZ,'String'));
+roll = str2double(get(handles.axAngle,'String'));
+u = u/norm(u);
+u = u';
+
+R = Eaa2rotMat(roll,u);
+q = QuatFromMatrix(R);
+q = q/norm(q);
+q = q';
+setGlobalQuat(q);
+
+UpdateAttitudes(q, handles);
+
+handles.Cube = RedrawCube(q, handles.Cube);
+
 
 % --- Executes on button press in anglesButton.
 function anglesButton_Callback(hObject, eventdata, handles)
