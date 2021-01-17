@@ -669,23 +669,10 @@ function eulersButton_Callback(hObject, eventdata, handles)
 % hObject    handle to eulersButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-u(1) = str2double(get(handles.axisX,'String'));
-u(2) = str2double(get(handles.axisY,'String'));
-u(3) = str2double(get(handles.axisZ,'String'));
-roll = str2double(get(handles.axAngle,'String'));
-u = u/norm(u);
-u = u';
-
-R = Eaa2rotMat(roll,u);
-q = QuatFromMatrix(R);
-q = q/norm(q);
-q = q';
-setGlobalQuat(q);
-
-UpdateAttitudes(q, handles);
-
-handles.Cube = RedrawCube(q, handles.Cube);
-
+get(handles.axisX,'String');
+get(handles.axisY,'String');
+get(handles.axisZ,'String');
+get(handles.axAngle,'String');
 
 % --- Executes on button press in anglesButton.
 function anglesButton_Callback(hObject, eventdata, handles)
@@ -772,22 +759,22 @@ set(handles.axAngle,'String', round(angle,3));
 
 % Set Euler Angles
 [alpha, beta, gamma] = rotM2eAngles(R);
-set(handles.alpha, 'String', round(alpha,3));
-set(handles.beta, 'String', round(beta,3));
-set(handles.gamma, 'String', round(gamma,3));
+set(handles.alpha, 'String', round(alpha));
+set(handles.beta, 'String', round(beta));
+set(handles.gamma, 'String', round(gamma));
 
 % Set the Quaternion
 q = QuatFromMatrix(R);
-set(handles.q_a,'String', round(q(1),3));
-set(handles.q_b,'String', round(q(2),3));
-set(handles.q_c,'String', round(q(3),3));
-set(handles.q_d,'String', round(q(4),3));
+set(handles.q_a,'String', num2str(q(1)));
+set(handles.q_b,'String', num2str(q(2)));
+set(handles.q_c,'String', num2str(q(3)));
+set(handles.q_d,'String', num2str(q(4)));
 
 % Set Rotation Vector
 u = v * angle;
-set(handles.vecX, 'String', round(u(1),3));
-set(handles.vecY, 'String', round(u(2),3));
-set(handles.vecZ, 'String', round(u(3),3));
+set(handles.vecX, 'String', num2str(u(1)));
+set(handles.vecY, 'String', num2str(u(2)));
+set(handles.vecZ, 'String', num2str(u(3)));
 
 function qk = MultQuat(q_a,q_b)
 %MULTQUAT Summary of this function goes here
