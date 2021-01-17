@@ -144,15 +144,14 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     q1 = QuaternionFrom2Vec(m0,m1);
     q1 = q1/norm(q1);
-    q1 = MultQuat(q1,q0);    
-    R = MatrixFromQuat(q1);  
+    q1 = MultQuat(q1,q0);  
    % Transform the vector and the quat
     setGlobalVector(m1);
     setGlobalQuat(q1);
-    %Publish new attitudes
-    UpdateAttitudes(R, handles);
     % Redraw Cube
     handles.Cube = RedrawCube(q1,handles.Cube);
+    %Publish new attitudes
+    UpdateAttitudes(q1, handles);
     
 end
 guidata(hObject,handles);
@@ -635,14 +634,14 @@ function resetButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 setGlobalQuat([1 0 0 0]');
+setGlobalVector([0 0 0]');
 
-q1 = getGlobalQuat();
+q = getGlobalQuat();
 
-R = MatrixFromQuat(q1);
+UpdateAttitudes(q, handles);
+setGlobalQuat(q);
 
-UpdateAttitudes(R, handles);
-
-handles.Cube = RedrawCube(R,handles.Cube);
+handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in quatButton.
 function quatButton_Callback(hObject, eventdata, handles)
@@ -656,9 +655,9 @@ str2double(get(handles.q_d,'String'))];
 
 q = q/norm(q);
 
-setGlobalQuat(q);
-UpdateAttitudes(q, handles)
 handles.cube = RedrawCube(q, handles.Cube);
+UpdateAttitudes(q, handles);
+setGlobalQuat(q);
 
 % --- Executes on button press in eulersButton.
 function eulersButton_Callback(hObject, eventdata, handles)
@@ -668,19 +667,22 @@ function eulersButton_Callback(hObject, eventdata, handles)
 u(1) = str2double(get(handles.axisX,'String'));
 u(2) = str2double(get(handles.axisY,'String'));
 u(3) = str2double(get(handles.axisZ,'String'));
-roll = str2double(get(handles.axAngle,'String'));
-u = u/norm(u);
-u = u';
+a = str2double(get(handles.axAngle,'String'));
 
-R = Eaa2rotMat(roll,u);
+det_u = sqrt(u(1)^2+u(2)^2+u(3)^2);
+
+if(a == 0 || det_u == 0)
+    R = eye(3);
+else
+    R = Eaa2rotMat(deg2rad(a),u);
+end
+
 q = QuatFromMatrix(R);
 q = q/norm(q);
-q = q';
-setGlobalQuat(q);
-
-UpdateAttitudes(q, handles);
 
 handles.Cube = RedrawCube(q, handles.Cube);
+setGlobalQuat(q);
+UpdateAttitudes(q, handles);
 
 
 % --- Executes on button press in anglesButton.
@@ -697,9 +699,9 @@ q = QuatFromMatrix(R);
 q = q/norm(q);
 q = q';
 
-UpdateAttitudes(q,handles);
-setGlobalQuat(q);
 handles.Cube = RedrawCube(q,handles.Cube);
+setGlobalQuat(q);
+UpdateAttitudes(q,handles);
 
 % --- Executes on button press in rotationButton.
 function rotationButton_Callback(hObject, eventdata, handles)
@@ -711,21 +713,21 @@ vY = str2double(get(handles.vecY,'String'));
 vZ = str2double(get(handles.vecZ,'String'));
 
 v = [vX, vY, vZ]';
-normV = v/norm(v);
+normV = norm(v);
 
 if(normV == 0)
     R = eye(3);
 else
     C = [0 -v(3) v(2); v(3) 0 -v(1); -v(2) v(1) 0];
-    R = eye(3) + C*sin(normV) + C^2*(1 - cos(normV));
+    R = eye(3) * cosd(normV) + ((1 - cosd(normV)) / normV.^ 2) * (v * v') + (sind(normV) / normV) * C;
 end
 
 q = QuatFromMatrix(R);
 q = q/norm(q);
 
+handles.Cube = RedrawCube(q, handles.Cube);
 setGlobalQuat(q);
 UpdateAttitudes(q, handles);
-handles.Cube = RedrawCube(q, handles.Cube);
 
 function m = To2DPointsTo3D(x,y)
 r = 70;
@@ -742,8 +744,8 @@ end
 m=[x;y;z];
 
 function q = QuaternionFrom2Vec(u, v)
-angle = acosd((v'*u)/(norm(v)*norm(u)));
 c = cross(u, v);
+angle = acosd((v'*u)/(norm(v)*norm(u)));
 c = c / norm(c);
 q = [cosd(angle/2),sin(angle/2) * c']';
 
@@ -777,10 +779,10 @@ set(handles.m33, 'String', round(R(3,3),3));
 % Calculate the angle and the vector
 [angle, v] = rotMat2Eaa(R);
 % Calculate the Rotation Vector
+set(handles.axAngle,'String', round(angle,3));
 set(handles.axisX,'String', round(v(1),3));
 set(handles.axisY,'String', round(v(2),3));
 set(handles.axisZ,'String', round(v(3),3));
-set(handles.axAngle,'String', round(angle,3));
 
 % Set Euler Angles
 [alpha, beta, gamma] = rotM2eAngles(R);
