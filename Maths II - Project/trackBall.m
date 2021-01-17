@@ -780,11 +780,9 @@ if x*x+y*y < 0.5*r*r
 elseif x*x + y*y >= 0.5*r*r
     z1 = r*((r*r)/(sqrt(x^2+y^2)));
     z2 = det((r*r)/(sqrt(x^2+y^2)));
-    z = z1/z2;
-    modulePoint = norm([x;y;z]); 
-    x = r*x/modulePoint;
-    y = r*y/modulePoint;
-    z = r*z/modulePoint;
+    z = z1/z2; 
+    x = r*x/det(x);
+    y = r*y/det(y);
 end
 m=[x;y;z];
 
