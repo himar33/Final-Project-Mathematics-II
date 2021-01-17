@@ -774,10 +774,13 @@ handles.Cube = RedrawCube(q,handles.Cube);
 function m = To2DPointsTo3D(x,y)
 r = 70;
 
+%Holroyd's arcball method
 if x*x+y*y < 0.5*r*r
     z = abs(sqrt(r*r-(x*x)-(y*y))); 
-else
-    z = (r*r)/(2*sqrt(x*x+y*y));
+elseif x*x + y*y >= 0.5*r*r
+    z1 = r*((r*r)/(sqrt(x^2+y^2)));
+    z2 = det((r*r)/(sqrt(x^2+y^2)));
+    z = z1/z2;
     modulePoint = norm([x;y;z]); 
     x = r*x/modulePoint;
     y = r*y/modulePoint;
