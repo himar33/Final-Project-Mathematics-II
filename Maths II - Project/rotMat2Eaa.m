@@ -7,12 +7,23 @@ function [a,u] = rotMat2Eaa(R)
 %	a: angle of rotation
 %	u: axis of rotation 
 
-a = acos((trace(R)-1)/2);
-u = zeros(3,1);
+a = acosd((trace(R)-1)*0.5);
+I = eye(3);
 
-ux = (R - R')/(2*sin(a));
+if a == 0
+   axis = [0 0 0]';
+elseif a == 180
+    M = (R+I)/2;
+    axis = [sqrt(M(1,1)) sqrt(M(2,2)) sqrt(M(3,3))]';
+else
+    C = ((R-R')/(2*sind(a)));
+    axis = [C(3,2) C(1,3) C(2,1)]';
+end
 
-u = [ux(3,2);ux(1,3);ux(2,1)];
+if a == 0
+    u = axis;
+else
+    u = axis/norm(axis);
 
 end
 

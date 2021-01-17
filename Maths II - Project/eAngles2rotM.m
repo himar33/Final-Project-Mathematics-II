@@ -8,10 +8,9 @@ function [R] = eAngles2rotM(yaw, pitch, roll)
 % Outputs:
 %	R: rotation matrix
 
-Rx=[cosd(yaw),sind(yaw),0;-sind(yaw),cosd(yaw),0;0,0,1];
-Ry=[cosd(pitch),0,-sind(pitch);0,1,0;sind(pitch),0,cosd(pitch)];
-Rz=[1,0,0;0,cosd(roll),sind(roll);0,-sind(roll),cosd(roll)];
-R=Rx'*Ry'*Rz';
+R = [cosd(pitch)*cosd(roll), cosd(roll)*sind(pitch)*sind(yaw) - cosd(yaw)*sind(roll), cosd(roll)*cosd(yaw)*sind(pitch) + sind(roll)*sind(yaw);
+    sind(roll)*cosd(pitch), sind(roll)*sind(pitch)*sind(yaw) + cosd(yaw)*cosd(roll), sind(roll)*sind(pitch)*cosd(yaw) - cosd(roll)*sind(yaw);
+    -sind(pitch), cosd(pitch)*sind(yaw), cosd(pitch)*cosd(yaw)];
 
 end
 

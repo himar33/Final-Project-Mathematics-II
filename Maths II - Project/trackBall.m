@@ -153,9 +153,6 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     UpdateAttitudes(R, handles);
     % Redraw Cube
     handles.Cube = RedrawCube(q1,handles.Cube);
-    %Save actual data
-    handles.q0 = q1;
-    handles.m0 = m1;
     
 end
 guidata(hObject,handles);
@@ -657,12 +654,11 @@ str2double(get(handles.q_b,'String'));
 str2double(get(handles.q_c,'String'));
 str2double(get(handles.q_d,'String'))];
 
-q=q';
 q = q/norm(q);
-handles.q0 = q;
 
-setGlobalQuat(UpdateAttitudes(R, handles));
-handles.cube = RedrawCube(R, handles.cube);
+setGlobalQuat(q);
+UpdateAttitudes(q, handles)
+handles.cube = RedrawCube(q, handles.Cube);
 
 % --- Executes on button press in eulersButton.
 function eulersButton_Callback(hObject, eventdata, handles)
@@ -700,8 +696,9 @@ R = eAngles2rotM(alpha,beta,gamma);
 q = QuatFromMatrix(R);
 q = q/norm(q);
 q = q';
-setGlobalQuat(q);
+
 UpdateAttitudes(q,handles);
+setGlobalQuat(q);
 handles.Cube = RedrawCube(q,handles.Cube);
 
 % --- Executes on button press in rotationButton.
@@ -709,9 +706,26 @@ function rotationButton_Callback(hObject, eventdata, handles)
 % hObject    handle to rotationButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-get(handles.vecX,'String');
-get(handles.vecY,'String');
-get(handles.vecZ,'String');
+vX = str2double(get(handles.vecX,'String'));
+vY = str2double(get(handles.vecY,'String'));
+vZ = str2double(get(handles.vecZ,'String'));
+
+v = [vX, vY, vZ]';
+normV = v/norm(v);
+
+if(normV == 0)
+    R = eye(3);
+else
+    C = [0 -v(3) v(2); v(3) 0 -v(1); -v(2) v(1) 0];
+    R = eye(3) + C*sin(normV) + C^2*(1 - cos(normV));
+end
+
+q = QuatFromMatrix(R);
+q = q/norm(q);
+
+setGlobalQuat(q);
+UpdateAttitudes(q, handles);
+handles.Cube = RedrawCube(q, handles.Cube);
 
 function m = To2DPointsTo3D(x,y)
 r = 70;
@@ -739,11 +753,9 @@ function R = MatrixFromQuat(q)
 if q(1) == 1
     R = eye(3);
 else
-    
-R = [1-2*q(3)^2-2*q(4)^2,     2*q(2)*q(3)-2*q(4)*q(1),      2*q(2)*q(4)+2*q(3)*q(1);
-     2*q(2)*q(3)+2*q(4)*q(1), 1-2*q(2)^2-2*q(4)^2,          2*q(3)*q(4)-2*q(2)*q(1);
-     2*q(2)*q(4)-2*q(3)*q(1), 2*q(3)*q(4)+2*q(2)*q(1),       1-2*q(2)^2-2*q(3)^2];
-R = R/norm(R);
+    R = [2*(q(1)^2+q(2)^2)-1,    2*(q(2)*q(3)-q(1)*q(4)),     2*(q(2)*q(4)+q(1)*q(3));
+        2*(q(2)*q(3)+q(1)*q(4)),  2*(q(1)^2+q(3)^2)-1,        2*(q(3)*q(4)-q(1)*q(2));
+        2*(q(2)*q(4)-q(1)*q(3)),   2*(q(3)*q(4)+q(1)*q(2)),    2*(q(1)^2+q(4)^2)-1];
  
 end
 
@@ -784,7 +796,7 @@ set(handles.q_c,'String', round(q(3),3));
 set(handles.q_d,'String', round(q(4),3));
 
 % Set Rotation Vector
-u = v * angle;
+u = angle * v;
 set(handles.vecX, 'String', round(u(1),3));
 set(handles.vecY, 'String', round(u(2),3));
 set(handles.vecZ, 'String', round(u(3),3));
@@ -800,31 +812,33 @@ function qk = MultQuat(q_a,q_b)
 
 
 function q = QuatFromMatrix(m)
-
+q = [1 0 0 0]';
+m_d = [m(1,1),m(2,2),m(3,3)];
 if(trace(m) > 0)
     S = sqrt(trace(m) + 1) *2;
     q(1) = 0.25 * S;
     q(2) = (m(3,2) - m(2,3)) / S;
     q(3) = (m(1,3) - m(3,1)) / S;
     q(4) = (m(2,1) - m(1,2)) / S;
-
-elseif (m(1,1) > m(2,2)&&(m(1,1) > m(3,3)))
-    S = sqrt(1 + m(1,1) - m(2,2) - m(3,3)) *2;
-    q(1) = (m(3,2) - m(2,3)) / S;
-    q(2) = 0.25 * S;
-    q(3) = (m(1,2) + m(2,1)) / S;
-    q(4) = (m(1,3) + m(3,1)) / S;
-
-elseif (m(2,2) > m(3,3))
-    S = sqrt(1 + m(2,2) - m(1,1) - m(3,3)) *2;
-    q(1) = (m(1,3) - m(3,1)) / S;
-    q(2) = (m(1,2) + m(2,1)) / S;
-    q(3) = 0.25 * S;
-    q(4) = (m(2,3) + m(3,2)) / S;
 else
-    S = sqrt(1.0 + m(3,3) - m(1,1) - m(2,2)) * 2;
-    q(1) = (m(2,1) - m(1,2)) / S;
-    q(2) = (m(1,3) + m(3,1)) / S;
-    q(3) = (m(2,3) + m(3,2)) / S;
-    q(4) = 0.25 * S;
+    if (m(1,1) == max(m_d))
+        S = sqrt(1 + m(1,1) - m(2,2) - m(3,3)) *2;
+        q(1) = (m(3,2) - m(2,3)) / S;
+        q(2) = 0.25 * S;
+        q(3) = (m(1,2) + m(2,1)) / S;
+        q(4) = (m(1,3) + m(3,1)) / S;
+
+    elseif (m(2,2) == max(m_d))
+        S = sqrt(1 + m(2,2) - m(1,1) - m(3,3)) *2;
+        q(1) = (m(1,3) - m(3,1)) / S;
+        q(2) = (m(1,2) + m(2,1)) / S;
+        q(3) = 0.25 * S;
+        q(4) = (m(2,3) + m(3,2)) / S;
+    elseif(m(3,3) == max(m_d))
+        S = sqrt(1.0 + m(3,3) - m(1,1) - m(2,2)) * 2;
+        q(1) = (m(2,1) - m(1,2)) / S;
+        q(2) = (m(1,3) + m(3,1)) / S;
+        q(3) = (m(2,3) + m(3,2)) / S;
+        q(4) = 0.25 * S;
+    end
 end

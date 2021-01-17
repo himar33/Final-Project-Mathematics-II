@@ -8,12 +8,18 @@ function [yaw, pitch, roll] = rotM2eAngles(R)
 %	pitch: angle of rotation around the y axis
 %	roll: angle of rotation around the x axis
 
-seno_roll=R(3,1);
-roll=asin(seno_roll);
-seno_yaw=(R(3, 2))/cos(roll);
-yaw=asin(seno_yaw);
-seno_pitch=(R(2, 1))/cos(roll);
-pitch=asin(seno_pitch);
+pitch=asind(-(R(3,1)));
+if pitch == 90
+    minus_yaw = asind(R(1,2));
+    roll = 0;
+    yaw = minus_yaw+roll;
+elseif pitch == -90
+    plus_yaw = asind(R(1,2));
+    roll = 0;
+    yaw = plus_yaw - roll;
+elseif pitch ~= 90 || pitch ~= -90
+    yaw = atan2d(real((R(3,2))/cosd(pitch)),real((R(3,3))/cosd(pitch)));
+    roll = atan2d(real((R(2,1))/cosd(pitch)),real((R(1,1))/cosd(pitch)));
 
 end
 
